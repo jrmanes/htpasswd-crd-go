@@ -1,0 +1,7 @@
+domain: htpasswd-crd-go
+repo: github.com/jrmanes/htpasswd-crd-go
+resources:
+- group: htpasswd
+  kind: Htpasswd
+  version: v1
+version: "2"
