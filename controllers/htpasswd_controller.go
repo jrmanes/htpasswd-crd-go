@@ -25,7 +25,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	htpasswdv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
+	securityv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
 )
 
 // HtpasswdReconciler reconciles a Htpasswd object
@@ -35,22 +35,23 @@ type HtpasswdReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=htpasswd.htpasswd-crd-go,resources=htpasswds,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=htpasswd.htpasswd-crd-go,resources=htpasswds/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds/status,verbs=get;update;patch
 
 func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("htpasswd", req.NamespacedName)
 
 	// your logic here
-	log.Println("THIS IS THE HTPASSWD")
-	log.Println(req.Name)
-	log.Println(req.Namespace)
+	log.Println("HTPASSWD-CRD-GO")
+	log.Println("namespace", req.Namespace)
+	log.Println("name", req.Name)
+
 	return ctrl.Result{}, nil
 }
 
 func (r *HtpasswdReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&htpasswdv1.Htpasswd{}).
+		For(&securityv1.Htpasswd{}).
 		Complete(r)
 }
