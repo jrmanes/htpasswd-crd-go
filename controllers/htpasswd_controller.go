@@ -21,11 +21,12 @@ import (
 	"log"
 
 	"github.com/go-logr/logr"
+	securityv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	securityv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
 )
 
 // HtpasswdReconciler reconciles a Htpasswd object
@@ -43,16 +44,44 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	logWithValues := r.Log.WithValues("htpasswd", req.NamespacedName)
 
+	// Retrieve the htpasswd data from manifest
 	var htpasswd securityv1.Htpasswd
 	if err := r.Get(ctx, req.NamespacedName, &htpasswd); err != nil {
-		logWithValues.Error(err, "unable to fetch Htpasswd")
+		logWithValues.Error(err, "unable to fetch htpasswd")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
 	log.Println("manifest htpasswd.Name =>", htpasswd.Name)
 	log.Println("manifest htpasswd.Namespace =>", htpasswd.Namespace)
-	log.Println("manifest htpasswd.Spec.User =>", htpasswd.Spec.User)
-	log.Println("manifest htpasswd.Spec.Password =>", htpasswd.Spec.Password)
-	log.Println("manifest htpasswd.Spec.Namespace =>", htpasswd.Spec.Namespace)
+	log.Println("manifest htpasswd.Spec =>", htpasswd.Spec)
+
+	//existingSecrets := &corev1.Secret{}
+	//err := r.Get(ctx, req.NamespacedName, existingSecrets)
+	//if err != nil {
+	//	if errors.IsNotFound(err) {
+	//		// Request object not found, could have been deleted after reconcile request.
+	//		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+	//		// Return and don't requeue
+	//		log.Println("NOT FOUND ANY SECRETS", existingSecrets)
+	//		return reconcile.Result{}, nil
+	//	}
+	//	// Error reading the object - requeue the request.
+	//	return reconcile.Result{}, err
+	//}
+
+	//log.Println("###########")
+	//log.Println(existingSecrets.Name)
+	//log.Println("###########")
+
+	// format the new secret
+	secret := r.NewSecret(htpasswd)
+	log.Println("secret", secret)
+
+	// call the API in order to creat a new secret
+	err := r.Create(context.TODO(), secret)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -61,4 +90,23 @@ func (r *HtpasswdReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&securityv1.Htpasswd{}).
 		Complete(r)
+}
+
+// NewSecret prepare the new secret using our htpasswd content
+func (r *HtpasswdReconciler) NewSecret(ht securityv1.Htpasswd) *corev1.Secret {
+	labels := map[string]string{
+		"app": ht.Name,
+	}
+
+	return &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ht.Name,
+			Namespace: ht.Namespace,
+			Labels:    labels,
+		},
+		Data:       nil,
+		StringData: nil,
+		Type:       "Opaque",
+	}
 }
