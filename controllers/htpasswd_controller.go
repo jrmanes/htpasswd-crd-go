@@ -50,31 +50,13 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		logWithValues.Error(err, "unable to fetch htpasswd")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-
+	// data from manifest
 	log.Println("manifest htpasswd.Name =>", htpasswd.Name)
 	log.Println("manifest htpasswd.Namespace =>", htpasswd.Namespace)
 	log.Println("manifest htpasswd.Spec =>", htpasswd.Spec)
 
-	//existingSecrets := &corev1.Secret{}
-	//err := r.Get(ctx, req.NamespacedName, existingSecrets)
-	//if err != nil {
-	//	if errors.IsNotFound(err) {
-	//		// Request object not found, could have been deleted after reconcile request.
-	//		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-	//		// Return and don't requeue
-	//		log.Println("NOT FOUND ANY SECRETS", existingSecrets)
-	//		return reconcile.Result{}, nil
-	//	}
-	//	// Error reading the object - requeue the request.
-	//	return reconcile.Result{}, err
-	//}
-
-	//log.Println("###########")
-	//log.Println(existingSecrets.Name)
-	//log.Println("###########")
-
 	// format the new secret
-	secret := r.NewSecret(htpasswd)
+	secret := r.CreateSecret(htpasswd)
 	log.Println("secret", secret)
 
 	// call the API in order to creat a new secret
@@ -93,7 +75,7 @@ func (r *HtpasswdReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // NewSecret prepare the new secret using our htpasswd content
-func (r *HtpasswdReconciler) NewSecret(ht securityv1.Htpasswd) *corev1.Secret {
+func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *corev1.Secret {
 	labels := map[string]string{
 		"app": ht.Name,
 	}
