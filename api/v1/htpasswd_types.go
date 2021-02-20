@@ -29,8 +29,9 @@ type HtpasswdSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Htpasswd. Edit Htpasswd_types.go to remove/update
-	User     string `json:"user"`
-	Password string `json:"password"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	Namespace string `json:"namespace"`
 }
 
 // HtpasswdStatus defines the observed state of Htpasswd

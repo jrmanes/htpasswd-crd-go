@@ -38,14 +38,21 @@ type HtpasswdReconciler struct {
 // +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds/status,verbs=get;update;patch
 
+// Reconcile is where controller logic lives
 func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("htpasswd", req.NamespacedName)
+	ctx := context.Background()
+	logWithValues := r.Log.WithValues("htpasswd", req.NamespacedName)
 
-	// your logic here
-	log.Println("HTPASSWD-CRD-GO")
-	log.Println("namespace", req.Namespace)
-	log.Println("name", req.Name)
+	var htpasswd securityv1.Htpasswd
+	if err := r.Get(ctx, req.NamespacedName, &htpasswd); err != nil {
+		logWithValues.Error(err, "unable to fetch Htpasswd")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	log.Println("manifest htpasswd.Name =>", htpasswd.Name)
+	log.Println("manifest htpasswd.Namespace =>", htpasswd.Namespace)
+	log.Println("manifest htpasswd.Spec.User =>", htpasswd.Spec.User)
+	log.Println("manifest htpasswd.Spec.Password =>", htpasswd.Spec.Password)
+	log.Println("manifest htpasswd.Spec.Namespace =>", htpasswd.Spec.Namespace)
 
 	return ctrl.Result{}, nil
 }
