@@ -3,6 +3,8 @@ The following CRD/Operator is created with the purpose of create secrets objects
 
 You can use them, for instance to authenticate users in your Kubernetes Ingress(NginX). 
 
+Created with [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) framework.
+
 ## Example manifest
 The has the following structure
 
@@ -38,8 +40,6 @@ To install this CRD in your Kubernetes cluster, just need to execute the followi
 ```make
 make run
 ```
-
-
 
 ---
 Jose Ramón Mañes
