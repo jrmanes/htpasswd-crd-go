@@ -88,6 +88,7 @@ func (r *HtpasswdReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// TODO
 // GenerateHtpasswd will encrypt the user and password as htpasswd does
 func (r *HtpasswdReconciler) GenerateHtpasswd(user, pass string) {
 	log.Printf("///// GenerateHtpasswd ///////////")
