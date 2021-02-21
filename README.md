@@ -41,5 +41,21 @@ To install this CRD in your Kubernetes cluster, just need to execute the followi
 make run
 ```
 
+
+## Make useful commands
+Building and deploying the Operator
+
+```make
+make run:- Run the on the default Kubernetes cluster
+make install:- Install the CRD into the cluster
+make uninstall:- Uninstall the CRD
+make deploy:- Deploy the Operator into the cluster
+make manifests:- Generate the YAML files
+make generate:- Generate source codes
+make docker-build:- Build the docker image
+make docker-push:- Push the docker image to the specified registry
+
+```
+
 ---
 Jose Ramón Mañes

@@ -19,10 +19,12 @@ package controllers
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/go-logr/logr"
 	securityv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -50,19 +52,31 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		logWithValues.Error(err, "unable to fetch htpasswd")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	// data from manifest
-	log.Println("manifest htpasswd.Name =>", htpasswd.Name)
-	log.Println("manifest htpasswd.Namespace =>", htpasswd.Namespace)
-	log.Println("manifest htpasswd.Spec =>", htpasswd.Spec)
+
+	var htpasswdList securityv1.HtpasswdList
+	if err := r.List(ctx, &htpasswdList, client.InNamespace(req.Namespace)); err != nil {
+		logWithValues.Error(err, "unable to list child Jobs")
+		return ctrl.Result{}, err
+	}
+
+	// create the file for user and password
+	user := htpasswd.Spec.User
+	pass := htpasswd.Spec.Password
+	// create the htpasswd format
+	r.GenerateHtpasswd(user, pass)
 
 	// format the new secret
 	secret := r.CreateSecret(htpasswd)
-	log.Println("secret", secret)
-
-	// call the API in order to creat a new secret
+	// call the API in order to creat a new secret and check if there is any error
 	err := r.Create(context.TODO(), secret)
-	if err != nil {
-		return ctrl.Result{}, err
+	switch {
+	case err == nil:
+		logWithValues.Info("Created Htpasswd resource")
+	case errors.IsAlreadyExists(err):
+		logWithValues.Info("Htpasswd resource already exists")
+	default:
+		logWithValues.Error(err, "Failed to create Htpasswd resource")
+		os.Exit(1)
 	}
 
 	return ctrl.Result{}, nil
@@ -74,8 +88,15 @@ func (r *HtpasswdReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// GenerateHtpasswd will encrypt the user and password as htpasswd does
+func (r *HtpasswdReconciler) GenerateHtpasswd(user, pass string) {
+	log.Printf("///// GenerateHtpasswd ///////////")
+	log.Printf("user %s and pass %s =>\n", user, pass)
+}
+
 // NewSecret prepare the new secret using our htpasswd content
 func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *corev1.Secret {
+	log.Println("Lets create a new secret...", ht.Name)
 	labels := map[string]string{
 		"app": ht.Name,
 	}
