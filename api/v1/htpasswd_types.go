@@ -24,6 +24,7 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // HtpasswdSpec defines the desired state of Htpasswd
+// +kubebuilder:printcolumn:name="Status",type=integer,JSONPath=`.status.status`
 type HtpasswdSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -41,11 +42,15 @@ type HtpasswdSpec struct {
 type HtpasswdStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status string `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
 // Htpasswd is the Schema for the htpasswds API
+// +kubebuilder:printcolumn:name="User",type=string,JSONPath=`.spec.user`
+// +kubebuilder:printcolumn:name="kind",type=string,JSONPath=`.kind`
+// +kubebuilder:printcolumn:name="apiVersion",type=string,JSONPath=`.apiVersion`
 type Htpasswd struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

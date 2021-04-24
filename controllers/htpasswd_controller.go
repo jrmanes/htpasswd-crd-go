@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-logr/logr"
 	securityv1 "github.com/jrmanes/htpasswd-crd-go/api/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,7 +39,6 @@ type HtpasswdReconciler struct {
 
 // +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=security.htpasswd-crd-go,resources=htpasswds/status,verbs=get;update;patch
-
 // Reconcile is where controller logic lives
 func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -49,13 +47,13 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// Retrieve the htpasswd data from manifest
 	var htpasswd securityv1.Htpasswd
 	if err := r.Get(ctx, req.NamespacedName, &htpasswd); err != nil {
-		logWithValues.Error(err, "unable to fetch htpasswd")
+		logWithValues.Info("unable to fetch htpasswd", "name", req.Namespace)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	var htpasswdList securityv1.HtpasswdList
 	if err := r.List(ctx, &htpasswdList, client.InNamespace(req.Namespace)); err != nil {
-		logWithValues.Error(err, "unable to list child Jobs")
+		logWithValues.Info("unable to list child Jobs", "name", req.Namespace)
 		return ctrl.Result{}, err
 	}
 
@@ -79,6 +77,15 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		os.Exit(1)
 	}
 
+	//if htpasswd.Status.Status == "" {
+	//	htpasswd.Status.Status = "HOWDY"
+	//}
+	//if err := r.Status().Update(ctx, &htpasswd); err != nil {
+	//	logWithValues.Info("ERROR updating the STATUS", "name", req.Namespace)
+	//	logWithValues.Error(err, "ERROR updating the STATUS", "name", req.Namespace)
+	//	return ctrl.Result{}, client.IgnoreNotFound(err)
+	//}
+
 	return ctrl.Result{}, nil
 }
 
@@ -96,21 +103,33 @@ func (r *HtpasswdReconciler) GenerateHtpasswd(user, pass string) {
 }
 
 // NewSecret prepare the new secret using our htpasswd content
-func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *corev1.Secret {
+//func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *corev1.Secret {
+func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *securityv1.Htpasswd {
 	log.Println("Lets create a new secret...", ht.Name)
 	labels := map[string]string{
 		"app": ht.Name,
 	}
 
-	return &corev1.Secret{
+	return &securityv1.Htpasswd{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ht.Name,
 			Namespace: ht.Namespace,
 			Labels:    labels,
 		},
-		Data:       nil,
-		StringData: nil,
-		Type:       "Opaque",
+		Spec:   securityv1.HtpasswdSpec{},
+		Status: securityv1.HtpasswdStatus{},
 	}
+
+	//return &corev1.Secret{
+	//	TypeMeta: metav1.TypeMeta{},
+	//	ObjectMeta: metav1.ObjectMeta{
+	//		Name:      ht.Name,
+	//		Namespace: ht.Namespace,
+	//		Labels:    labels,
+	//	},
+	//	Data:       nil,
+	//	StringData: nil,
+	//	Type:       "Opaque",
+	//}
 }

@@ -29,8 +29,10 @@ kubectl get htpasswd
 ## Development
 To install this CRD in your Kubernetes DEV cluster, just need to execute the following commands:
 ```make
-make install
+make manifest; make generate; make install
 ```
+
+To run and check logs:
 ```make
 make run
 ```
@@ -40,7 +42,6 @@ To install this CRD in your Kubernetes cluster, just need to execute the followi
 ```make
 make run
 ```
-
 
 ## Make useful commands
 Building and deploying the Operator
