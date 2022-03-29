@@ -85,7 +85,6 @@ func (r *HtpasswdReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	//	logWithValues.Error(err, "ERROR updating the STATUS", "name", req.Namespace)
 	//	return ctrl.Result{}, client.IgnoreNotFound(err)
 	//}
-
 	return ctrl.Result{}, nil
 }
 
@@ -120,16 +119,4 @@ func (r *HtpasswdReconciler) CreateSecret(ht securityv1.Htpasswd) *securityv1.Ht
 		Spec:   securityv1.HtpasswdSpec{},
 		Status: securityv1.HtpasswdStatus{},
 	}
-
-	//return &corev1.Secret{
-	//	TypeMeta: metav1.TypeMeta{},
-	//	ObjectMeta: metav1.ObjectMeta{
-	//		Name:      ht.Name,
-	//		Namespace: ht.Namespace,
-	//		Labels:    labels,
-	//	},
-	//	Data:       nil,
-	//	StringData: nil,
-	//	Type:       "Opaque",
-	//}
 }
