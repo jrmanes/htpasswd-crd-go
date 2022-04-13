@@ -24,6 +24,7 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // HtpasswdSpec defines the desired state of Htpasswd
+// All the following fields, will be part of the spec in the manifest
 // +kubebuilder:printcolumn:name="Status",type=integer,JSONPath=`.status.status`
 type HtpasswdSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
